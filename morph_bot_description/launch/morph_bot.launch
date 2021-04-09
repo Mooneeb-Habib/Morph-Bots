@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <!-- launch file specific for two wheel robot simulation -->
+
+  <!-- parameters that can be overrided -->
+  <arg name="robot_quantity" default="20" />
+  <arg name="half_range" default="0.5" />
+
+  <!-- the environment initialization -->
+  <include file="$(find morph_bot_description)/launch/initialize.launch">
+    <!-- override with this robot name, although it's default already -->
+    <arg name="robot_name" value="morph_bot" />
+  </include>
+
+  <!-- the two wheel robot manager node -->
+  <node name="morph_bot_manager" pkg="morph_bot_description" type="morph_bot_manager.py" ns="morph_sim" output="log" />
+
+  <!-- the two wheel robot batch adding node -->
+  <node name="morph_bot_batch_add" pkg="morph_bot_description" type="morph_bot_batch_add.py" ns="morph_sim" output="screen">
+    <param name="~robot_quantity" type="int" value="$(arg robot_quantity)" />
+    <param name="~half_range" type="double" value="$(arg half_range)" />
+  </node>
+
+
+</launch>
+
