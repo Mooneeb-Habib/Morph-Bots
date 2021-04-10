@@ -48,8 +48,8 @@ def position_availibility(position_2d):
         if (dist < SAFE_DIST): return false
     return True
 
-def twoWheelRobotUpdateCallback(request, response, add_model_client, delete_model_client, two_wheel_robot_urdf):
-
+def twoWheelRobotUpdateCallback(request, add_model_client, delete_model_client, two_wheel_robot_urdf):
+    response = two_wheel_robot_updateResponse()
     if (request.update_code <= two_wheel_robot_update.CODE_DELETE):
         container_index = current_robots.index
         delete_robot_quantity = abs(request.update_code)
@@ -68,7 +68,7 @@ def twoWheelRobotUpdateCallback(request, response, add_model_client, delete_mode
                 delete_model.request.model_name = "morph_bot_" + str(delete_index)
                 call_service = delete_model_client.call(delete_model)
                 if (call_service):
-                    if (delete_model.response.success):
+                    if (delete_model._response_class.success):
                         rospy.loginfo("morph_bot_%s" % delete_index % "%s has been deleted")
                     else:
                         rospy.loginfo("morph_bot_%s" % delete_index % "%s deletion failed")
@@ -86,9 +86,9 @@ def twoWheelRobotUpdateCallback(request, response, add_model_client, delete_mode
         for i in range(delete_robot_quantity):
             delete_index = container_index[i]
             delete_model.request.model_name = "morph_bot_" + str(delete_index)
-            call_service = delete_model_client.call(delete_model)
+            call_service = delete_model_client(delete_model)
             if (call_service):
-               if (delete_model.response.success):
+               if (delete_model._response_class.success):
                    rospy.loginfo("morph_bot_%s" % delete_index % "%s has been deleted")
                else:
                    rospy.loginfo("morph_bot_robot_%s" % delete_index % "%s deletion failed")
@@ -136,14 +136,14 @@ def twoWheelRobotUpdateCallback(request, response, add_model_client, delete_mode
         add_model.request.initial_pose.orientation = random_quaternion()
         call_service = add_model_client.call(add_model)
         if (call_service): 
-            if (add_model.response.success):
+            if (add_model._response_class.success):
                 rospy.loginfo(new_model_name % "%s has been spawned")
             else:
                 rospy.loginfo(new_model_name % " %s fail to be spawned")
                 response.response_code = two_wheel_robot_update.FAIL_OTHER_REASONS
         else:
             rospy.logerr("fail to connect with gazebo server")
-            response.response_code = two_wheel_robot_update.ADD_FAIL_NO_RESPONSE
+            response.response_code = two_wheel_robot_update._response_class.ADD_FAIL_NO_RESPONSE
             return True
         return True
     
@@ -266,12 +266,12 @@ while not rospy.is_shutdown():
 		    call_service = joint_properties_client.call(joint_properties_srv_msg)
 		    # if call service not successful, it will leave the joint velocity unchanged
 		    if (call_service):
-		        if not joint_properties_srv_msg.response.success:
+		        if not joint_properties_srv_msg._response_class.success:
 		            # joint not found, there is possible robot deletion the container doesn't realize
 		            rospy.logwarn("there is possible robot deletion not updated")
 		        else: 
 		            # update the left wheel velocity
-		            current_robots.left_wheel_vel[i] = joint_properties_srv_msg.response.rate[0]
+		            current_robots.left_wheel_vel[i] = joint_properties_srv_msg._response_class.rate[0]
 		    else: 
 		        rospy.logerr("fail to connect with gazebo server")
 		        # do not return here
