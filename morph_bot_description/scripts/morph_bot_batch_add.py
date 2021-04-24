@@ -8,20 +8,21 @@
 
 import rospy
 import sys
-from swarm_robot_srv.srv import two_wheel_robot_update
-from swarm_robot_srv.srv import two_wheel_robot_updateRequest
+import numpy as np
+import math as m
+from swarm_robot_srv.srv import two_wheel_robot_update, two_wheel_robot_updateRequest
 rospy.init_node('morph_bot_batch_add')
 
 # handshake with robot name in parameter server
 robot_name = rospy.get_param('/morph_sim/robot_name')
 
 if (not robot_name):
-	rospy.logerr("simulation environment(parameters) is not set")
-	sys.exit()
+    rospy.logerr("simulation environment(parameters) is not set")
+    sys.exit()
 
 if (robot_name != "morph_bot"):
-	rospy.logerr("wrong robot according to parameter server")
-	sys.exit()
+    rospy.logerr("wrong robot according to parameter server")
+    sys.exit()
 
 # check if service is ready, "/morph_sim/two_wheel_robot_update"
 
@@ -37,11 +38,11 @@ two_wheel_robot_update_srv_msg = two_wheel_robot_updateRequest()
 
 robot_quantity = rospy.get_param("/morph_sim/morph_bot_batch_add/robot_quantity")
 if (robot_quantity): 
-	rospy.loginfo("using robot quantity passed in: %s" % robot_quantity)
-	rospy.delete_param("/morph_sim/morph_bot_batch_add/robot_quantity")
+    rospy.loginfo("using robot quantity passed in: %s" % robot_quantity)
+    rospy.delete_param("/morph_sim/morph_bot_batch_add/robot_quantity")
 else:
-	robot_quantity = 10  # the default value
-	rospy.loginfo("using default robot quantity: 10")
+    robot_quantity = 10  # the default value
+    rospy.loginfo("using default robot quantity: 10")
     
 # parameter: half_range
 
@@ -50,40 +51,50 @@ if (half_range):
     rospy.loginfo("using half range passed in: %s" % half_range)
     rospy.delete_param("/morph_sim/morph_bot_batch_add/half_range")
 else:
-	half_range = 1.0  # the default value
-	rospy.loginfo("using default half range: 1.0")
+    half_range = 1.0  # the default value
+    rospy.loginfo("using default half range: 1.0")
 
 # prepare the service message
 two_wheel_robot_update_srv_msg.update_code = 1
-two_wheel_robot_update_srv_msg.add_mode = two_wheel_robot_updateRequest.ADD_MODE_RANDOM
+two_wheel_robot_update_srv_msg.add_mode = two_wheel_robot_updateRequest.ADD_MODE_SPECIFIED
 two_wheel_robot_update_srv_msg.half_range = half_range
-
 # call service to add robot repeatedly
 
 minimal_delay = rospy.Duration(0.01)   # this is a moderate waiting time
 
+robot_quantity = 64
+rqs = int(m.sqrt(robot_quantity))
+x = []
+for i in range(0,robot_quantity,rqs):
+    for j in range(0,robot_quantity,rqs):
+        x.append(np.array([float(i/20.0) ,float(j/20.0)]))
+
 for i in range(robot_quantity):
     # call the service to add one robot randomly
-    call_service = two_wheel_robot_update_client(two_wheel_robot_update_srv_msg)
-    if (call_service):
-    	response_code = two_wheel_robot_update_srv_msg._response_class.response_code
-        if (response_code == two_wheel_robot_update_srv_msg._response_class.SUCCESS):
+    two_wheel_robot_update_srv_msg.position_2d = x[i]
+    resp = two_wheel_robot_update_client(two_wheel_robot_update_srv_msg)
+    if (resp):
+        response_code = resp.response_code
+        if (response_code == two_wheel_robot_update._response_class.SUCCESS):
             rospy.loginfo("success")
-            break
-        if (response_code == two_wheel_robot_update_srv_msg._response_class.ADD_FAIL_NO_RESPONSE):
+            continue
+        if (response_code == two_wheel_robot_update._response_class.ADD_FAIL_NO_RESPONSE):
             rospy.logwarn("add fail because no response from gazebo")
-            break
-        if (response_code == two_wheel_robot_update_srv_msg._response_class.ADD_FAIL_TOO_CROWDED):
+            continue
+        if (response_code == two_wheel_robot_update._response_class.ADD_FAIL_TOO_CROWDED):
             rospy.logwarn("add fail because the range is too crowded")
-            break
-        if (response_code == two_wheel_robot_update_srv_msg._response_class.FAIL_OTHER_REASONS):
+            continue
+        if (response_code == two_wheel_robot_update._response_class.FAIL_OTHER_REASONS):
             # keep trying for this case
             rospy.logwarn("fail because of other reasons")
-            while (call_service):
+            while (response_code != two_wheel_robot_update._response_class.SUCCESS):
+                resp = two_wheel_robot_update_client(two_wheel_robot_update_srv_msg)
+                response_code = resp.response_code
                 rospy.logwarn("keep trying to add one robot")
-                minimal_delay.sleep()
+                rospy.sleep(minimal_delay)
+
             rospy.loginfo("success after retry")
-            break
+            continue
         else:
             # there is no reason to be here, otherwise there is problems in service request
             rospy.logerr("wrong response code, check the service request for details")
@@ -91,4 +102,5 @@ for i in range(robot_quantity):
     else: 
         rospy.logerr("fail to connect to service /morph_sim/two_wheel_robot_update")
     # delay for a minimal time, so that topic message in manager can update
-    minimal_delay.sleep()
+    rospy.sleep(minimal_delay)
+

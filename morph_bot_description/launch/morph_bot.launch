@@ -14,13 +14,14 @@
   </include>
 
   <!-- the two wheel robot manager node -->
-  <node name="morph_bot_manager" pkg="morph_bot_description" type="morph_bot_manager.py" ns="morph_sim" output="log" />
+  <node name="morph_bot_manager" pkg="morph_bot_description" type="morph_bot_manager.py" ns="morph_sim" output="screen" />
 
   <!-- the two wheel robot batch adding node -->
   <node name="morph_bot_batch_add" pkg="morph_bot_description" type="morph_bot_batch_add.py" ns="morph_sim" output="screen">
     <param name="~robot_quantity" type="int" value="$(arg robot_quantity)" />
     <param name="~half_range" type="double" value="$(arg half_range)" />
   </node>
+  <!--node name="test" pkg="morph_bot_description" type="test.py" ns="morph_sim" output="screen" /-->
 
 
 </launch>
