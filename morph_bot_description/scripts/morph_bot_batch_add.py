@@ -62,7 +62,7 @@ two_wheel_robot_update_srv_msg.half_range = half_range
 
 minimal_delay = rospy.Duration(0.01)   # this is a moderate waiting time
 
-robot_quantity = 64
+robot_quantity = 16
 rqs = int(m.sqrt(robot_quantity))
 x = []
 for i in range(0,robot_quantity,rqs):

@@ -1,18 +1,24 @@
 #!/usr/bin/python
 
-import rospy
 import sys
+import rospy
+import math as m
+import numpy as np
+from im2goal import goal_points
+
 from random import random
 from random import uniform
-import numpy as np
-import math as m
+from random import randint
+
+from std_msgs.msg import String
 from morph_msg.msg import BroadCast
-from swarm_robot_srv.srv import two_wheel_robot_update, two_wheel_robot_updateResponse
+from gazebo_msgs.msg import ModelStates
+from geometry_msgs.msg import Quaternion, Pose, Point
+
 from gazebo_msgs.srv import SpawnModel, SpawnModelRequest
 from gazebo_msgs.srv import DeleteModel, DeleteModelRequest
-from gazebo_msgs.msg import ModelStates
 from gazebo_msgs.srv import GetJointProperties, GetJointPropertiesRequest
-from geometry_msgs.msg import Quaternion, Pose, Point
+from swarm_robot_srv.srv import two_wheel_robot_update, two_wheel_robot_updateResponse
 
 
 def quaternion_to_angle(input_quaternion):
@@ -189,6 +195,17 @@ def modelStatesCallback(current_model_states):
                 current_robots.orientation.append(quaternion_to_angle(current_model_states.pose[i].orientation))
                 current_robots.left_wheel_vel.append(0)
                 current_robots.right_wheel_vel.append(0)
+                goal, cgoal, wp, next_step = Point(), Point(), Point(), Point() # initializing variables
+                r_goal, r_cgoal = randint(0,NOR-1), randint(0,NOR-1)          # generates random numbers
+                goal.x , goal.y = goals[0][r_goal]/20.0  ,goals[1][r_goal]/20.0     # assigns random goal
+                cgoal.x , cgoal.y = goals[0][r_cgoal]/20.0  ,goals[1][r_cgoal]/20.0 # assigns random goal
+                wp.x, wp.y = current_model_states.pose[i].position.x, current_model_states.pose[i].position.y
+                next_step.x, next_step.y = wp.x, wp.y
+                current_robots.T.append(goal)
+                current_robots.q_u.append(cgoal)
+                current_robots.wp.append(wp)
+                current_robots.next_step.append(next_step)
+                current_robots.hop.append(100000)
                 rospy.loginfo("robot addition detected: morph_bot_%s" % index_str)
     
     # update the container if there is any deletion in gazebo
@@ -214,8 +231,12 @@ def modelStatesCallback(current_model_states):
 
 global current_robots
 current_robots = BroadCast()
-global robot_position_updated
 robot_position_updated = False
+global goals
+global NOR
+goals,r,c = goal_points() # gets all goal points and image size
+NOR = len(goals[0])       # total number of robots
+current_robots.hop = list(current_robots.hop)
 
 rospy.init_node("morph_bot_manager")
 # handshake with robot name in parameter server, and get model urdf
@@ -239,7 +260,7 @@ rospy.wait_for_service("/gazebo/set_physics_properties")
 rospy.loginfo("gazebo is ready")
 
 # instantiate a publisher for the maintained information of two wheel robot
-morph_bot_publisher = rospy.Publisher("/morph_sim/two_wheel_robot", BroadCast, queue_size=10)
+morph_bot_pub = rospy.Publisher("/morph_sim/morph_bot", BroadCast, queue_size=10)
 
 # instantiate a subscriber for "/gazebo/model_states"
 rospy.Subscriber("/gazebo/model_states", ModelStates, modelStatesCallback)
@@ -260,7 +281,7 @@ delete_model_client = rospy.ServiceProxy("/gazebo/delete_model", DeleteModel)
 # add or delete robot models in gazebo
 two_wheel_robot_service = rospy.Service("/morph_sim/two_wheel_robot_update", two_wheel_robot_update, twoWheelRobotUpdateCallback)
 
-#loop_hz = rospy.Rate(1000)
+#loop_hz = rospy.Rate(10)
 # publish loop
 while not rospy.is_shutdown():
     # get the wheel speed for the maintained robots
@@ -296,7 +317,7 @@ while not rospy.is_shutdown():
             else:
                 rospy.logerr("fail to connect with gazebo server")
         # publish the two wheel robot information container
-        morph_bot_publisher.publish(current_robots)
+        morph_bot_pub.publish(current_robots)
         # reset the position update flag
         robot_position_updated = False
     # update global variables
