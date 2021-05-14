@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 plt.style.use('seaborn-whitegrid')
 
 def goal_points():
-	im = Image.open('/home/hashim/catkin_ws/src/potential_field_robot/scripts/64.png')
+	im = Image.open('/home/hashim/catkin_ws/src/potential_field_robot/scripts/16-1.png')
 	im = im.convert('1')
 	r,c = im.size
 	im_array = np.array(im)

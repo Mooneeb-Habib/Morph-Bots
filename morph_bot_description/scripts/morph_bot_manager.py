@@ -20,10 +20,23 @@ from gazebo_msgs.srv import DeleteModel, DeleteModelRequest
 from gazebo_msgs.srv import GetJointProperties, GetJointPropertiesRequest
 from swarm_robot_srv.srv import two_wheel_robot_update, two_wheel_robot_updateResponse
 
+global current_robots, goals, NOR, gf
+
+current_robots = BroadCast()
+robot_position_updated = False
+#current_robots.hop = list(current_robots.hop)
+
+gf = 5.0
+goals,r,c = goal_points() # gets all goal points and image size
+NOR = len(goals[0])       # total number of robots
+goals = goals/gf
+
 
 def quaternion_to_angle(input_quaternion):
     # this assume the x and y element of the quaternion is close to zero
     rad = m.atan(input_quaternion.z/input_quaternion.w) * 2
+    if rad < 0:
+        rad += 2*m.pi
     deg = rad * (180/m.pi)
     return deg
 
@@ -177,9 +190,9 @@ def modelStatesCallback(current_model_states):
                 # the size of container_index may change for each i
                 if (index_parsed == container_index[j]):
                     # update the 2D position of two wheel robots
-                    current_robots.x[j] = current_model_states.pose[i].position.x
-                    current_robots.y[j] = current_model_states.pose[i].position.y
-                    current_robots.orientation[j] = quaternion_to_angle(current_model_states.pose[i].orientation)
+                    current_robots.x[j] = round(current_model_states.pose[i].position.x,3)
+                    current_robots.y[j] = round(current_model_states.pose[i].position.y,3)
+                    current_robots.orientation[j] = round(quaternion_to_angle(current_model_states.pose[i].orientation),3)
                     # mark as -1, meaning position is updated
                     # will check later if there is any element not marked, i.e., not in gazebo
                     container_index[j] = -1
@@ -190,15 +203,17 @@ def modelStatesCallback(current_model_states):
                 # parsed index not found in the container, ADDITION found!
                 # update a new robot in the container
                 current_robots.index.append(index_parsed)
-                current_robots.x.append(current_model_states.pose[i].position.x)
-                current_robots.y.append(current_model_states.pose[i].position.y)
+                current_robots.x.append(round(current_model_states.pose[i].position.x,3))
+                current_robots.y.append(round(current_model_states.pose[i].position.y,3))
                 current_robots.orientation.append(quaternion_to_angle(current_model_states.pose[i].orientation))
-                current_robots.left_wheel_vel.append(0)
-                current_robots.right_wheel_vel.append(0)
+                current_robots.left_wheel_vel.append(0.0)
+                current_robots.right_wheel_vel.append(0.0)
                 goal, cgoal, wp, next_step = Point(), Point(), Point(), Point() # initializing variables
-                r_goal, r_cgoal = randint(0,NOR-1), randint(0,NOR-1)          # generates random numbers
-                goal.x , goal.y = goals[0][r_goal]/20.0  ,goals[1][r_goal]/20.0     # assigns random goal
-                cgoal.x , cgoal.y = goals[0][r_cgoal]/20.0  ,goals[1][r_cgoal]/20.0 # assigns random goal
+                # r_goal, r_cgoal = randint(0,NOR-1), randint(0,NOR-1)          # generates random numbers
+                # goal.x , goal.y = goals[0][r_goal]  ,goals[1][r_goal]   # assigns random goal
+                # cgoal.x , cgoal.y = goals[0][r_cgoal] ,goals[1][r_cgoal] # assigns random goal
+                goal.x , goal.y = goals[0][i-1]  ,goals[1][i-1]
+                cgoal.x , cgoal.y = goals[0][i-1],goals[1][i-1]
                 wp.x, wp.y = current_model_states.pose[i].position.x, current_model_states.pose[i].position.y
                 next_step.x, next_step.y = wp.x, wp.y
                 current_robots.T.append(goal)
@@ -228,15 +243,6 @@ def modelStatesCallback(current_model_states):
     # reset robot position updated flag
     robot_position_updated = True
 
-
-global current_robots
-current_robots = BroadCast()
-robot_position_updated = False
-global goals
-global NOR
-goals,r,c = goal_points() # gets all goal points and image size
-NOR = len(goals[0])       # total number of robots
-current_robots.hop = list(current_robots.hop)
 
 rospy.init_node("morph_bot_manager")
 # handshake with robot name in parameter server, and get model urdf
@@ -298,7 +304,7 @@ while not rospy.is_shutdown():
                     rospy.logwarn("there is possible robot deletion not updated")
                 else: 
                     # update the left wheel velocity
-                    current_robots.left_wheel_vel[i] = joint_properties_response.rate[0]
+                    current_robots.left_wheel_vel[i] = round(joint_properties_response.rate[0],3)
             else: 
                 rospy.logerr("fail to connect with gazebo server")
                 # do not return here
@@ -313,7 +319,7 @@ while not rospy.is_shutdown():
                     rospy.logwarn("there is possible robot deletion not updated")  
                 else:
                     # update the right wheel velocity
-                    current_robots.right_wheel_vel[i] = joint_properties_response.rate[0]
+                    current_robots.right_wheel_vel[i] = round(joint_properties_response.rate[0],3)
             else:
                 rospy.logerr("fail to connect with gazebo server")
         # publish the two wheel robot information container

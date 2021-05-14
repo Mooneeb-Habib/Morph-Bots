@@ -67,7 +67,7 @@ rqs = int(m.sqrt(robot_quantity))
 x = []
 for i in range(0,robot_quantity,rqs):
     for j in range(0,robot_quantity,rqs):
-        x.append(np.array([float(i/20.0) ,float(j/20.0)]))
+        x.append(np.array([float(i)/5.0 ,float(j)/5.0]))
 
 for i in range(robot_quantity):
     # call the service to add one robot randomly
