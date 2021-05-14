@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-1-g15f4949  Build Version: 1.6.7594.29634
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="morph-bot">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-2.4606E-06 0.011027 -0.0037489"
+        rpy="0 0 0" />
+      <mass
+        value="0.239" />
+      <inertia
+        ixx="0.022223"
+        ixy="2.0374E-08"
+        ixz="-9.7846E-09"
+        iyy="0.024872"
+        iyz="0.00013466"
+        izz="0.020437" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://morph_bot_design/meshes/base_link.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://morph_bot_design/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+<gazebo reference="base_link">
+  <material name="">
+    <color rgba="0.79216 0.81961 0.93333 1" />
+  </material>
+</gazebo>
+
+<link name="back_sphere">
+  <inertial>
+    <mass value="0.1" />
+    <origin xyz="0 0 0" />
+    <inertia ixx="0.00000000001" ixy="0.0" ixz="0.0"
+      iyy="0.00000000001" iyz="0.0"
+      izz="0.00000000001" />
+  </inertial>
+
+<!--   <visual>
+    <origin xyz="0 0 0" />
+    <geometry>
+      <sphere radius="0.002297" />
+    </geometry>
+  </visual> -->
+
+  <collision>
+    <origin xyz="0 0 0" />
+    <geometry>
+      <sphere radius="0.002297" />
+    </geometry>
+  </collision>
+</link>
+
+<gazebo reference="back_sphere">
+  <mu1>0.0</mu1>
+  <mu2>0.0</mu2>
+</gazebo>
+
+<joint name="back_support" type="fixed">
+  <parent link="base_link" />
+  <child link="back_sphere" />
+  <origin xyz="0 -0.03 0" rpy="0 0 0" />
+</joint>
+
+<link name="front_sphere">
+  <inertial>
+    <mass value="0.0125" />
+    <origin xyz="0 0 0" />
+    <inertia ixx="0.00000000001" ixy="0.0" ixz="0.0"
+      iyy="0.00000000001" iyz="0.0"
+      izz="0.00000000001" />
+  </inertial>
+
+<!--   <visual>
+    <origin xyz="0 0 0" />
+    <geometry>
+      <sphere radius="0.002297" />
+    </geometry>
+  </visual> -->
+
+  <collision>
+    <origin xyz="0 0 0" />
+    <geometry>
+      <sphere radius="0.002297" />
+    </geometry>
+  </collision>
+</link>
+
+<gazebo reference="front_sphere">
+  <mu1>0.0</mu1>
+  <mu2>0.0</mu2>
+</gazebo>
+
+<joint name="front_support" type="fixed">
+  <parent link="base_link" />
+  <child link="front_sphere" />
+  <origin xyz="0 0.03 0" rpy="0 0 0" />
+</joint>
+
+  <link
+    name="left_wheel">
+    <inertial>
+      <origin
+        xyz="0.0031767 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.20688" />
+      <inertia
+        ixx="7.8842E-05"
+        ixy="4.1106E-11"
+        ixz="1.3096E-11"
+        iyy="4.0023E-05"
+        iyz="4.5149E-10"
+        izz="4.0023E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://morph_bot_design/meshes/left_wheel.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://morph_bot_design/meshes/left_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+<gazebo reference="left_wheel">
+  <material name="">
+    <color rgba="0.094118 0.094118 0.094118 1" />
+  </material>
+</gazebo>
+
+  <link
+    name="right_wheel">
+    <inertial>
+      <origin
+        xyz="0.0031767 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.20688" />
+      <inertia
+        ixx="7.8842E-05"
+        ixy="4.0951E-11"
+        ixz="1.3204E-11"
+        iyy="4.0023E-05"
+        iyz="4.515E-10"
+        izz="4.0023E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://morph_bot_design/meshes/right_wheel.STL" />
+      </geometry>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://morph_bot_design/meshes/right_wheel.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <gazebo reference="right_wheel">
+  <material name="">
+    <color rgba="0.094118 0.094118 0.094118 1" />
+  </material>
+</gazebo>
+
+  <joint
+    name="left_motor"
+    type="continuous">
+    <origin
+      xyz="0 0 0"
+      rpy="-1.2608 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="left_wheel" />
+    <axis
+      xyz="1 0 0" />
+  </joint>
+  <joint
+    name="right_motor"
+    type="continuous">
+    <origin
+      xyz="-0.06 0 0"
+      rpy="1.2608 0 3.146" />
+    <parent
+      link="base_link" />
+    <child
+      link="right_wheel" />
+    <axis
+      xyz="-1 0 0" />
+  </joint>
+</robot>

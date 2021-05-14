@@ -26,7 +26,7 @@ current_robots = BroadCast()
 robot_position_updated = False
 #current_robots.hop = list(current_robots.hop)
 
-gf = 5.0
+gf = 5.0 # goal division factor
 goals,r,c = goal_points() # gets all goal points and image size
 NOR = len(goals[0])       # total number of robots
 goals = goals/gf
@@ -203,24 +203,24 @@ def modelStatesCallback(current_model_states):
                 # parsed index not found in the container, ADDITION found!
                 # update a new robot in the container
                 current_robots.index.append(index_parsed)
-                current_robots.x.append(round(current_model_states.pose[i].position.x,3))
-                current_robots.y.append(round(current_model_states.pose[i].position.y,3))
-                current_robots.orientation.append(quaternion_to_angle(current_model_states.pose[i].orientation))
+                current_robots.x.append(round(current_model_states.pose[i].position.x,3)) # x coordinate
+                current_robots.y.append(round(current_model_states.pose[i].position.y,3)) # y coordinate
+                current_robots.orientation.append(quaternion_to_angle(current_model_states.pose[i].orientation)) # orientation
                 current_robots.left_wheel_vel.append(0.0)
                 current_robots.right_wheel_vel.append(0.0)
                 goal, cgoal, wp, next_step = Point(), Point(), Point(), Point() # initializing variables
                 # r_goal, r_cgoal = randint(0,NOR-1), randint(0,NOR-1)          # generates random numbers
                 # goal.x , goal.y = goals[0][r_goal]  ,goals[1][r_goal]   # assigns random goal
                 # cgoal.x , cgoal.y = goals[0][r_cgoal] ,goals[1][r_cgoal] # assigns random goal
-                goal.x , goal.y = goals[0][i-1]  ,goals[1][i-1]
-                cgoal.x , cgoal.y = goals[0][i-1],goals[1][i-1]
+                goal.x , goal.y = goals[0][i-1]  ,goals[1][i-1] # unique goals assigned
+                cgoal.x , cgoal.y = goals[0][i-1],goals[1][i-1] # unique candidate goals assigned
                 wp.x, wp.y = current_model_states.pose[i].position.x, current_model_states.pose[i].position.y
-                next_step.x, next_step.y = wp.x, wp.y
-                current_robots.T.append(goal)
-                current_robots.q_u.append(cgoal)
-                current_robots.wp.append(wp)
-                current_robots.next_step.append(next_step)
-                current_robots.hop.append(100000)
+                next_step.x, next_step.y = wp.x, wp.y # waypoint = next_step
+                current_robots.T.append(goal) # target goal
+                current_robots.q_u.append(cgoal) # candidate goal
+                current_robots.wp.append(wp) # waypoint
+                current_robots.next_step.append(next_step) # next step
+                current_robots.hop.append(100000) # hop count
                 rospy.loginfo("robot addition detected: morph_bot_%s" % index_str)
     
     # update the container if there is any deletion in gazebo

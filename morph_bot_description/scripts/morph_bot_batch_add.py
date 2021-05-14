@@ -62,12 +62,15 @@ two_wheel_robot_update_srv_msg.half_range = half_range
 
 minimal_delay = rospy.Duration(0.01)   # this is a moderate waiting time
 
-robot_quantity = 16
+robot_quantity = 16 # number of robots in simulation
+
+# assigning grid coordinates
 rqs = int(m.sqrt(robot_quantity))
-x = []
+x = [] # coordinates array
 for i in range(0,robot_quantity,rqs):
     for j in range(0,robot_quantity,rqs):
-        x.append(np.array([float(i)/5.0 ,float(j)/5.0]))
+        # dividing by factor to condense coordinates
+        x.append(np.array([float(i)/20.0 ,float(j)/20.0]))
 
 for i in range(robot_quantity):
     # call the service to add one robot randomly
