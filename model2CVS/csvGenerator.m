@@ -1,7 +1,12 @@
 clear all; close all; clc;
 
-model = 'cube-side-125.stl';
-[allTarget, sz] = startSlicer(model);
-display(allTarget{1})
+model = 'pentagon.stl';
+[allTargets, sz] = startSlicer(model);
 
-csvwrite('morphGoalPoint.csv',allTarget)
+%Removing all the duplicate coordinates that enter the system
+Z0 = unique(allTargets{1},'rows'); 
+Z1 = unique(allTargets{2},'rows');
+Z2 = unique(allTargets{3},'rows');
+
+allTarget = {Z0 Z1 Z2};
+csvwrite('morphGoalPoint-triangle.csv',allTarget)
