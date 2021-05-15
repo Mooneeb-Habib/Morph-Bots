@@ -1,4 +1,4 @@
-function [Goal,sz] = startSlicer(stl_file)
+function [Goal,sz] = startSlicer(stl_file,extrusion)
 
 % ==========================================================
 % Copyright (C) Damien Berget 2013
@@ -15,7 +15,7 @@ fileName = stl_file;
 
 [vertices, tessellation] = readStl(fileName);
 
-layerThickness = 62.5;
+layerThickness = extrusion/3;
 
 %build top amd bottom Z triangle list
 [triBottomList, triTopList] = buildTopBotLists(vertices, tessellation);
