@@ -6,10 +6,10 @@ for i = 1:length(slices)
     fig = slices{i};
     
     %The number of samples to subsample a boundary by
-    No_of_samples = 10;
+    No_of_samples = 8;
     
     %The amount by which to reduce the size of the image
-    divisor = 50;
+    divisor = 10;
     
     %Performing Otsu-Thresholding
     otsu = graythresh(fig);
