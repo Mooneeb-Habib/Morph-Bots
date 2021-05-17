@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <!-- launch file specific for shape formation -->
+  <node name="plotter" pkg="morph_bot_description" type="plot_morph_bots.py" ns="morph_sim" output="screen" />
+   <!-- the goal manager node-->
+  <node name="goal_manager" pkg="morph_bot_sf" type="goal_manager.py" ns="morph_sim" output="screen"/>
+  <!-- the path planner node-->
+  <node name="shape_formation" pkg="morph_bot_sf" type="shape_formation.py" ns="morph_sim" output="screen" />
+
+
+</launch>

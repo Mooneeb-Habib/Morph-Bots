@@ -10,7 +10,14 @@ import rospy
 import sys
 import numpy as np
 import math as m
+from im2goal import goal_points
 from swarm_robot_srv.srv import two_wheel_robot_update, two_wheel_robot_updateRequest
+from goal_extractor.gpExtractor import csv2gp
+
+goals,mid,r,c = goal_points() # gets all goal points and image size
+NOR = len(goals[0])       # total number of robots
+
+
 rospy.init_node('morph_bot_batch_add')
 
 # handshake with robot name in parameter server
@@ -62,15 +69,31 @@ two_wheel_robot_update_srv_msg.half_range = half_range
 
 minimal_delay = rospy.Duration(0.01)   # this is a moderate waiting time
 
-robot_quantity = 16 # number of robots in simulation
+robot_quantity = NOR # number of robots in simulation
 
 # assigning grid coordinates
-rqs = int(m.sqrt(robot_quantity))
-x = [] # coordinates array
-for i in range(0,robot_quantity,rqs):
-    for j in range(0,robot_quantity,rqs):
-        # dividing by factor to condense coordinates
-        x.append(np.array([float(i)/20.0 ,float(j)/20.0]))
+# rqs = int(m.sqrt(robot_quantity))
+# x = [] # coordinates array
+# for i in range(0,robot_quantity,rqs):
+#     for j in range(0,robot_quantity,rqs):
+#         # dividing by factor to condense coordinates
+#         x.append(np.array([float(i)/20.0 ,float(j)/20.0]))
+
+x = []
+gf = 10.0
+w = (max(goals[0]) - min(goals[0]))/2
+l = (max(goals[1]) - min(goals[1]))/2
+rospy.loginfo(goals)
+rospy.loginfo("mid: {0}, w: {1}. l: {2}".format(mid,w,l))
+spy = np.random.normal(mid[0]/gf,w/gf,NOR)
+spx = np.random.normal(mid[1]/gf,l/gf,NOR)
+
+for i in range(NOR):
+    if spy[i] - mid[0]/gf > w/gf:
+        spy[i] -= w/gf
+    if spx[i] - mid[1]/gf > l/gf:
+        spx[i] -= l/gf
+    x.append(np.array([round(abs(spx[i]),1),round(abs(spy[i]),1)]))
 
 for i in range(robot_quantity):
     # call the service to add one robot randomly
@@ -86,6 +109,18 @@ for i in range(robot_quantity):
             continue
         if (response_code == two_wheel_robot_update._response_class.ADD_FAIL_TOO_CROWDED):
             rospy.logwarn("add fail because the range is too crowded")
+            continue
+        if (response_code == two_wheel_robot_update._response_class.ADD_FAIL_OCCUPIED):
+            rospy.logwarn("add robot at specified position fail because it is occupied")
+            while (response_code != two_wheel_robot_update._response_class.SUCCESS):
+                x[i][0] += 0.1
+                two_wheel_robot_update_srv_msg.position_2d = x[i]
+                resp = two_wheel_robot_update_client(two_wheel_robot_update_srv_msg)
+                response_code = resp.response_code
+                rospy.logwarn("keep trying to add one robot")
+                rospy.sleep(minimal_delay)
+
+            rospy.loginfo("success after retry")
             continue
         if (response_code == two_wheel_robot_update._response_class.FAIL_OTHER_REASONS):
             # keep trying for this case

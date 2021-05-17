@@ -2,6 +2,7 @@
 # the dimensions of following array should be the same, each elements indicate a robot
 
 int32[] index
+float64[] last_check
 int64[] hop
 float64[] x
 float64[] y
